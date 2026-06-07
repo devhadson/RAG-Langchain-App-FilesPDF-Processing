@@ -1,13 +1,13 @@
 # Documentación Técnica: Pipeline RAG para Análisis de documentos clínicos
 
-Esta documentación cubre la arquitectura, especificación de flujos de datos, desglose de código fuente, manual de despliegue y breve resumen del código completo de acuerdo al Pipeline RAG base para el sistema de **Generación Aumentada por Recuperación (RAG)** integrado por los módulos `rag_pipeline.py` y `app.py`. El sistema está optimizado para procesar expedientes médicos locales y responder consultas complejas minimizando alucinaciones.
+La documentación contempla la introducción, pasos para procesar archivos con RAG, Pipeline RAG para el Análisis de documentos clínicos, arquitectura y tecnologías, flujos, desglose de código fuente, resumen del código según el Pipeline RAG, casos de uso y escenarios validados para el sistema de **Generación Aumentada por Recuperación (RAG)** integrado por los módulos `rag_pipeline.py` y `app.py`; asimismo, detallamos algunas herramientas como analizadores para RAG con la finalidad de convertir el PDF a formatos limpios como Markdown. El sistema está optimizado para procesar expedientes médicos locales y responder consultas complejas minimizando alucinaciones.
 
 ## Introducción
 Para leer archivos PDF en un sistema RAG (Generación Aumentada por Recuperación), debes extraer el texto, dividirlo en partes pequeñas, convertirlas a números (vectores) y guardarlas en una base de datos para que la IA responda preguntas. 
 
 Para el desarrollo se considera el **Pipeline RAG para Análisis de documentos clínicos** utlizando Python bajo una *arquitectura estándar* de la industria, es decir, implementaremos el aplicando *LangChain*, *PyPDF* para la extracción, *ChromaDB* como base de datos *vectorial local (en memoria)* y *OpenAI* tanto para los embeddings como para el modelo de lenguaje (LLM).
 
-### Pasos Básicos para Procesar archivos con RAG
+### Pasos para procesar archivos con RAG
 En este desarrollo aplicaremos el flujo estándar para procesar cualquier archivo PDF bajo un sistema de [Generación Aumentada por Recuperación (RAG)](https://github.com/devhadson/AI-Agent-Architecture/blob/main/006.RAG-Generacion-Aumentada-por-Recuperacion.md), es decir, para esta PoC aplicaremos cuatro principales fases:
 
    1. Extracción: Analizar el PDF y extraer todo el texto, tablas e imágenes.
@@ -21,14 +21,14 @@ En este desarrollo aplicaremos el flujo estándar para procesar cualquier archiv
 
 Sin embargo, también existen herramientas sin código, es decir, servicios web con IA y soluciones avanzadas para desarrolladores que agilizan el procesamiento de los PDF's.
 
-### Herramientas Web Listas para Usar
+#### Herramientas Web Listas para Usar
 Si no quieres programar, puedes subir tus archivos a plataformas que leen y resumen PDFs automáticamente utilizando IA:
 
 * NotebookLM: Herramienta gratuita de Google que permite subir varios documentos y crear resúmenes o chatear con ellos.
 * HiPDF: Plataforma en línea que permite subir un documento PDF y hacer preguntas sobre su contenido.
 * Adobe Acrobat AI: Opción integrada en el lector oficial de Adobe para interactuar con tus documentos.
 
-### Pipeline RAG para el Análisis de documentos clínicos
+## Pipeline RAG para el Análisis de documentos clínicos
 
 A continuación, presento el diseño del flujo que se aplicará para el desarrollo del sistema inteligente de Análisis de documentos clínicos.
 
@@ -47,40 +47,41 @@ graph LR
     E -->|5. Indexación espacial| F[🔍 Búsqueda <br> 🎯 Recuperador K=3]
 
     %% Asignación de Estilos Especiales
-    class B,C,D destacado;
-    class E,F baseDatos;
+    class B,C,D,E destacado;
+    class A,F baseDatos;
 
     %% Personalización de enlaces (Aristas)
     linkStyle default stroke:#555,stroke-width:2px,circle;
 
 ```
 
-#### 📝 Desglose de los Componentes
+### Desglose de los Componentes
 
-1. **📥 Extracción:**
-    * **Entrada:** 📂 Directorio físico local que almacena los documentos.
-    * **Proceso:** Lee de manera automatizada el texto binario de las páginas de los archivos 📑 PDF y lo unifica en texto plano estructurado.
+1. **Extracción:**
+    * **Entrada:** Directorio físico local que almacena los documentos.
+    * **Proceso:** Lee de manera automatizada el texto binario de las páginas de los archivos PDF y lo unifica en texto plano estructurado.
 
-2. **✂️ Fragmentación / Chunking:**
+2. **Fragmentación / Chunking:**
     * **Proceso:** Divide de forma inteligente el texto extenso en bloques homogéneos de un tamaño máximo predefinido.
     * **Métrica:** Se configuran ventanas semánticas con margen de solapamiento para evitar la pérdida de contexto entre fragmentos adyacentes.
 
-3. **🧬 Incrustación:**
+3. **Incrustación:**
     * **Proceso:** Convierte las palabras y enunciados textuales procesados en la fase anterior en vectores de alta dimensionalidad (coordenadas matemáticas).
 
-4. **💾 Almacenamiento:**
+4. **Almacenamiento:**
     * **Proceso:** Colecciona y guarda de forma estructurada los vectores generados junto con sus metadatos fuente dentro de una base de datos indexada en memoria RAM para optimizar la velocidad.
 
-5. **🔍 Búsqueda e Inferencia:**
+- **Búsqueda e Inferencia:**
 
-    * **Proceso:** Ejecuta algoritmos de similitud coseno sobre la base de datos para recuperar de forma exacta los `k` fragmentos más relevantes frente a una consulta del usuario, dejándolos listos para alimentar al LLM.
-    * **Búsqueda:** Para esta PoC se hace uso de la interfaz de consola de Visual Studio Code.
+    * **Proceso:** Ejecuta algoritmos de similitud coseno sobre la base de datos para recuperar de forma exacta los `k` fragmentos más relevantes frente a una consulta del usuario, dejándolos listos para alimentar al LLM.    
 
 ---
 
-## 1. Arquitectura y Tecnologías Aplicadas
+## Arquitectura y Tecnologías Aplicadas
 
 El sistema se basa en un patrón RAG desacoplado en dos capas lógicas claras (Ingesta y Ejecución) utilizando las siguientes tecnologías:
+
+![Arquitectura TI: Análisis de documentos clínicos aplicando RAG](docs/img/IAGen-Architecture-Tech-2026-RAG-analisis-documentos-clinico.png)
 
 * **Orquestación General:** `LangChain` (versión 1.0+ compatible), usando abstracciones modernas para la separación de responsabilidades.
 * **Extracción de Documentos:** `PyPDFDirectoryLoader` (`langchain_community`), encargado del parseo masivo de múltiples archivos PDF nativos dentro de directorios del sistema operativo.
@@ -92,9 +93,9 @@ El sistema se basa en un patrón RAG desacoplado en dos capas lógicas claras (I
 
 ---
 
-## 2. Flujos del Sistema RAG
+## Flujos del Sistema RAG
 
-A continuación, se esquematizan de forma gráfica los procesos lógicos internos del software:
+A continuación, se esquematizan de forma gráfica los procesos lógicos internos del software o sistema de Análisis de documentos clínicos:
 
 ### Flujo A: Fase de Ingesta, Extracción e Indexación Vectorial (`rag_pipeline.py`)
 
@@ -135,7 +136,7 @@ graph LR
 
 ---
 
-## 3. Documentación Detallada del Código Fuente
+## Documentación Detallada del Código Fuente
 
 ### Módulo 1: `rag_pipeline.py` (ETL de Datos Vectoriales)
 
@@ -168,7 +169,21 @@ Establecer la temperatura del LLM en `0` junto con esta instrucción reduce a ce
 
 ---
 
-## 4. Casos de Uso y Escenarios Validados
+## Resumen del Código según el Pipeline RAG
+Este script procesa automáticamente todos los archivos PDF dentro de una carpeta local, ejecuta las 4 fases del pipeline y abre una interfaz de consola para interactuar con los documentos PDFs.
+
+### Pipeline RAG según la Arquitectura del Software
+
+Explicación del Pipeline RAG según la Arquitectura tecnológica del Software de Análisis de documentos clínicos
+
+   1. *Extracción:* `PyPDFDirectoryLoader` escanea de manera eficiente el directorio local indicado. Transforma cada página de cada PDF en un objeto `Document` de LangChain que preserva el texto original junto con metadatos útiles (como el nombre del archivo y el número de página).
+   2. *Fragmentación (Chunking):* Se utiliza `RecursiveCharacterTextSplitter`. La fragmentación inteligente busca cortes naturales respetando saltos de línea `\n\n`, `\n` y espacios. Se define un tamaño de fragmento de 1000 caracteres con un solapamiento de 200 para garantizar que la información que quede en los límites de un fragmento conserve su contexto en el siguiente.
+   3. *Incrustación:* Utilizamos el modelo oficial `text-embedding-3-small` de OpenAI mediante la clase `OpenAIEmbeddings`. Este transforma cada fragmento de texto plano en un vector denso de números que representan su significado semántico.
+   4. *Almacenamiento y Búsqueda:* Los vectores se indexan dentro de un motor de persistencia local rápido llamado `ChromaDB`. Cuando realizas una consulta, este motor calcula la distancia matemática (similitud de coseno) entre el vector de tu pregunta y los fragmentos indexados, devolviendo inmediatamente el contenido más relevante (`k=3`).
+
+---
+
+## Casos de Uso y Escenarios Validados
 
 El pipeline está configurado y validado estructuralmente para resolver los siguientes escenarios del entorno de salud humana (basados en los documentos de la **Historia Clínica N° 81743**):
 
@@ -191,106 +206,6 @@ El pipeline está configurado y validado estructuralmente para resolver los sigu
 
 ---
 
-## 5. Guía de Instalación y Ejecución del Programa
-
-Siga estos pasos estructurados paso a paso para desplegar la aplicación en su máquina local:
-
-### Paso 1: Clonar o Crear el Directorio del Proyecto
-
-Abra una terminal o línea de comandos y ejecute los siguientes comandos para preparar el entorno de archivos:
-
-
-```bash
-# Crear la carpeta del proyecto
-mkdir pipeline-rag-clinico
-cd pipeline-rag-clinico
-
-# Crear la estructura de directorios requerida
-mkdir documentos_locales
-```
-
-### Paso 2: Configurar el Entorno Virtual de Python
-
-Se requiere Python 3.10 o una versión superior para asegurar la compatibilidad con los paquetes de LangChain v1.0+.
-
-```bash
-# Crear el entorno virtual llamado 'venv'
-python3 -m venv venv
-
-# Activar el entorno virtual
-# En macOS / Linux:
-source venv/bin/activate
-
-# En Windows (Símbolo de sistema):
-venv\Scripts\activate.bat
-
-# En Windows (PowerShell):
-.\venv\Scripts\Activate.ps1
-
-```
-
-### Paso 3: Instalación de Dependencias
-
-Una vez activado el entorno virtual (verá el indicador `(venv)` al inicio de su línea de comandos), instale los paquetes necesarios:
-
-```bash
-# Actualizar el gestor de paquetes pip
-pip install --upgrade pip
-
-# Instalar el stack tecnológico completo
-pip install langchain langchain-community langchain-core langchain-openai langchain-chroma pypdf python-dotenv
-
-```
-
-### Paso 4: Creación de los Archivos de Código Fuente
-
-Cree dos archivos de texto en la raíz del proyecto (`pipeline-rag-clinico/`) utilizando su editor de código favorito (VS Code, Notepad++, etc.) y guarde los códigos proporcionado en este repositorio:
-
-1. Nombre al primero: **`rag_pipeline.py`**
-2. Nombre al segundo: **`app.py`**
-
-### Paso 5: Configurar las Variables de Entorno (Credenciales de OpenAI)
-
-Cree un archivo llamado **`.env`** (sin nombre, solo con la extensión) en la raíz del directorio del proyecto:
-
-```text
-# Contenido del archivo .env
-OPENAI_API_KEY=tu_clave_secreta_real_aquí_sk_...
-
-```
-
-### Paso 6: Alimentar la Base de Datos y Ejecutar el Sistema
-
-1. Busque sus archivos PDF médicos (incluidos los reportes que contienen la información de la **H.C. 81743**).
-2. Copie y pegue estos archivos PDF dentro de la carpeta `./documentos_locales/`.
-3. Lance la aplicación ejecutando el script principal desde su terminal activa:
-
-```bash
-python app.py
-```
-
-### Paso 7: Interactuar con el Sistema
-
-* Al iniciar, el programa leerá los PDF de la carpeta local y mostrará en pantalla el conteo de páginas y fragmentos indexados en ChromaDB.
-* Cuando aparezca el prompt `👤 Tu pregunta: `, introduzca cualquiera de los **casos validados** detallados en la Sección 4.
-* Para finalizar la sesión del asistente de manera limpia y segura, escriba `salir` o `exit`.
-
----
-
-## Resumen del Código Completo de la Aplicación RAG
-Este script procesa automáticamente todos los archivos PDF dentro de una carpeta local, ejecuta las 4 fases del pipeline y abre una interfaz de consola para interactuar con los documentos PDFs.
-
-### Pipeline RAG según la Arquitectura del Software
-
-Explicación del Pipeline RAG según la Arquitectura tecnológica del Software de Análisis de documentos clínicos
-
-   1. *Extracción:* `PyPDFDirectoryLoader` escanea de manera eficiente el directorio local indicado. Transforma cada página de cada PDF en un objeto `Document` de LangChain que preserva el texto original junto con metadatos útiles (como el nombre del archivo y el número de página).
-   2. *Fragmentación (Chunking):* Se utiliza `RecursiveCharacterTextSplitter`. La fragmentación inteligente busca cortes naturales respetando saltos de línea `\n\n`, `\n` y espacios. Se define un tamaño de fragmento de 1000 caracteres con un solapamiento de 200 para garantizar que la información que quede en los límites de un fragmento conserve su contexto en el siguiente.
-   3. *Incrustación:* Utilizamos el modelo oficial `text-embedding-3-small` de OpenAI mediante la clase `OpenAIEmbeddings`. Este transforma cada fragmento de texto plano en un vector denso de números que representan su significado semántico.
-   4. *Almacenamiento y Búsqueda:* Los vectores se indexan dentro de un motor de persistencia local rápido llamado `ChromaDB`. Cuando realizas una consulta, este motor calcula la distancia matemática (similitud de coseno) entre el vector de tu pregunta y los fragmentos indexados, devolviendo inmediatamente el contenido más relevante (`k=3`).
-
----
-
 ## Los Mejores Analizadores (Parsers) para RAG
 Para que tu propio sistema RAG entienda el contenido correctamente, es clave convertir el PDF a formatos limpios como Markdown. En la actualidad existe las siguientes herramientas más recomendadas son:
 
@@ -304,8 +219,8 @@ Si deseas llevar este código a producción, te sugiero añadir un *historial de
 ---
 
 *Documentación y app elaborado por [Hadson Paredes](https://www.linkedin.com/in/hadson-paredes/) - 2026*
-- Repositorio [RAG-App-FilesPDF-Processing](https://github.com/devhadson/AI-Generative-RAG-Apps/blob/main/RAG-App-FilesPDF-Processing/README.md)
-- Disponible como recurso públicos en [Hadson.Tech](https://hadson.tech/public-resources/project-rag-ai/rag-app-filespdf-processing)
+- Repositorio [RAG-App-FilesPDF-Processing](https://github.com/devhadson/RAG-Langchain-App-FilesPDF-Processing)
+- Disponible como recurso públicos en [Hadson.Tech](https://hadson.tech/public-resources/project-rag-ai/rag-langchain-app-filespdf-processing)
 
 <hr>
 <div align="center">
