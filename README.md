@@ -107,10 +107,6 @@ Los atributos de calidad que garantizan la viabilidad operativa y la resiliencia
 * **Latencia Mínima en Búsquedas:** Al mantener el índice vectorial localmente en memoria RAM, el cálculo matemático del vecino más cercano (*Nearest Neighbors*) toma milisegundos, garantizando que el tiempo total de respuesta de la IA (incluyendo la inferencia del LLM externo) se mantenga por debajo de la barrera de los **2 segundos**.
 * **Alta Disponibilidad del Servicio Generativo:** Al delegar la inferencia en la infraestructura multi-región de OpenAI (`gpt-4o-mini`), el sistema hereda un Acuerdo de Nivel de Servicio (SLA) de disponibilidad global superior al **99.9%** para la capa de razonamiento.
 
-**Próximos Pasos:**
-
-* **Control de Tolerancia a Fallos (Fault Tolerance):** El bucle interactivo del chat está envuelto en bloques de control de excepciones (`try-except Exception`). Si la conexión a internet falla o el límite de cuota (Rate Limit) de OpenAI es alcanzado, la aplicación no experimenta una caída catastrófica (*crash*); en su lugar, captura el error, lo imprime en consola para conocimiento del administrador y mantiene el prompt abierto para nuevos intentos.
-
 ---
 
 # CAPÍTULO 3: PIPELINES Y FLUJOS DE DATOS
