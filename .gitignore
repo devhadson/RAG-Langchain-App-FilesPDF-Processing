@@ -1,3 +1,4 @@
 .env
 casos.txt
 __pycache__
+.gitignore_

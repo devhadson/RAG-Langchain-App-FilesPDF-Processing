@@ -1,17 +1,6 @@
 # ANÁLISIS DE DOCUMENTOS CLÍNICOS APLICANDO RAG
 
-Para leer archivos PDF en un sistema RAG (Generación Aumentada por Recuperación), debes extraer el texto, dividirlo en partes pequeñas, convertirlas a números (vectores) y guardarlas en una base de datos para que la IA responda preguntas. 
-
-En este desarrollo aplicaremos el flujo estándar para procesar cualquier archivo PDF bajo un sistema de [Generación Aumentada por Recuperación (RAG)](https://github.com/devhadson/AI-Agent-Architecture/blob/main/006.RAG-Generacion-Aumentada-por-Recuperacion.md), es decir, para esta PoC aplicaremos cuatro principales fases:
-
-   1. Extracción: Analizar el PDF y extraer todo el texto, tablas e imágenes.
-   2. Fragmentación (Chunking): Dividir el texto largo en pedazos más pequeños (por ejemplo, párrafos o bloques de 500 palabras).
-   3. Incrustación (Embedding): Convertir cada fragmento de texto en números (vectores) mediante modelos de IA.
-   4. Almacenamiento y Búsqueda: Guardar estos vectores en una base de datos para que la IA busque los datos relevantes cuando el usuario haga una pregunta.
-
-
-  > [!IMPORTANT]  
-  > El Pipeline RAG desarrollado fue validado con archivos en formato PDFs almacenados un directorio local, sin embargo, el código no se limitar al formato del archivos.
+Esta solución de inteligencia artificial implementa un sistema de Generación Aumentada por Recuperación (RAG) diseñado para transformar expedientes médicos y reportes clínicos estáticos en una base de conocimientos interactiva. Al integrar herramientas avanzadas de procesamiento de lenguaje natural, el software extrae y fragmenta automáticamente el contenido de documentos PDF locales para indexarlos en una base de datos vectorial de alta velocidad. El sistema permite realizar consultas directas sobre historias clínicas complejas, automatizando la búsqueda de datos críticos y garantizando respuestas precisas y basadas estrictamente en la evidencia documental, optimizando el tiempo de auditoría de los especialistas médicos.
 
 ---
 
@@ -43,14 +32,14 @@ Específicamente, el sistema resuelve los siguientes dolores operativos:
 
 Para garantizar un despliegue seguro, ético y alineado con los estándares del sector, se definen los límites lógicos de lo que el sistema **hace** y **NO hace**:
 
-#### 📌 Qué HACE el Sistema (Alcance)
+#### Qué HACE el Sistema (Alcance)
 
 * **Extracción y Parseo Semántico:** Lee e indexa de forma masiva texto plano proveniente de archivos PDF estructurados y semiestructurados depositados en el directorio local.
 * **Segmentación Inteligente:** Mantiene la correlación de entidades complejas (ej. dosis de medicamentos, rangos de laboratorio clínico, fechas de control) gracias a una fragmentación con solapamiento (*overlap* de 200 caracteres).
 * **Búsqueda por Similitud Coseno:** Recupera exclusivamente los 3 bloques de texto matemáticamente más relevantes asociados a la pregunta del usuario.
 * **Síntesis Basada en Evidencia:** Consolida una respuesta clara y estructurada utilizando *únicamente* los fragmentos recuperados como contexto fuente.
 
-#### 🚫 Qué NO HACE el Sistema (Limitaciones Críticas)
+#### Qué NO HACE el Sistema (Limitaciones Críticas)
 
 * **No Emite Diagnósticos Clínicos Autónomos:** El sistema es una herramienta de soporte y extracción documental; **no reemplaza el criterio médico**, no prescribe tratamientos ni genera juicios clínicos independientes.
 * **No Predice Comportamientos ni Tendencias en Salud:** El modelo analiza datos históricos estáticos. **No realiza análisis predictivo ni pronósticos sobre la evolución de patologías**, ni modela comportamientos futuros en pacientes (incluyendo restricciones absolutas para proyecciones de salud mental o física en menores de edad).
@@ -286,9 +275,12 @@ El pipeline está configurado y validado estructuralmente para resolver los sigu
 * *Pregunta:* *"¿Cuál es el último PLAN DE ALIMENTACIÓN INDIVIDUALIZADO PARA CONTROL DE DIABETES de la H.C. 81743?"*
 * *Comportamiento Validado:* El recuperador aisla la sección de la dieta personalizada guardada en el historial clínico de este paciente en particular, asegurando que el LLM devuelva las instrucciones dietéticas indicadas.
 
-
 > [!IMPORTANT]  
 > Se pude agregar más casos por ejemplo basado en el documento de la **Historia Clínica N° 63290** u otros.
+
+# RESUMEN
+
+El programa automatiza de forma segura la lectura de documentos clínicos mediante un pipeline estructurado en dos capas: ingesta y ejecución. Primero, extrae el texto de archivos PDF locales, lo divide en fragmentos semánticos y lo convierte en vectores matemáticos almacenados en memoria RAM mediante ChromaDB. Luego, cuando el usuario realiza una pregunta, el motor recupera los tres fragmentos más relevantes y alimenta al modelo GPT-4o-mini de OpenAI. Al configurarse con temperatura cero y reglas restrictivas, la IA no inventa información; si el dato no existe, se abstiene de responder, eliminando el riesgo de alucinaciones en salud.
 
 ---
 
