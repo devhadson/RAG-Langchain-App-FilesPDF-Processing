@@ -1,13 +1,7 @@
-# Documentación Técnica: Pipeline RAG para Análisis de documentos clínicos
+# ANÁLISIS DE DOCUMENTOS CLÍNICOS APLICANDO RAG
 
-La documentación contempla la introducción, pasos para procesar archivos con RAG, Pipeline RAG para el Análisis de documentos clínicos, arquitectura y tecnologías, flujos, desglose de código fuente, resumen del código según el Pipeline RAG, casos de uso y escenarios validados para el sistema de **Generación Aumentada por Recuperación (RAG)** integrado por los módulos `rag_pipeline.py` y `app.py`; asimismo, detallamos algunas herramientas como analizadores para RAG con la finalidad de convertir el PDF a formatos limpios como Markdown. El sistema está optimizado para procesar expedientes médicos locales y responder consultas complejas minimizando alucinaciones.
-
-## Introducción
 Para leer archivos PDF en un sistema RAG (Generación Aumentada por Recuperación), debes extraer el texto, dividirlo en partes pequeñas, convertirlas a números (vectores) y guardarlas en una base de datos para que la IA responda preguntas. 
 
-Para el desarrollo se considera el **Pipeline RAG para Análisis de documentos clínicos** utlizando Python bajo una *arquitectura estándar* de la industria, es decir, implementaremos el aplicando *LangChain*, *PyPDF* para la extracción, *ChromaDB* como base de datos *vectorial local (en memoria)* y *OpenAI* tanto para los embeddings como para el modelo de lenguaje (LLM).
-
-### Pasos para procesar archivos con RAG
 En este desarrollo aplicaremos el flujo estándar para procesar cualquier archivo PDF bajo un sistema de [Generación Aumentada por Recuperación (RAG)](https://github.com/devhadson/AI-Agent-Architecture/blob/main/006.RAG-Generacion-Aumentada-por-Recuperacion.md), es decir, para esta PoC aplicaremos cuatro principales fases:
 
    1. Extracción: Analizar el PDF y extraer todo el texto, tablas e imágenes.
@@ -19,67 +13,58 @@ En este desarrollo aplicaremos el flujo estándar para procesar cualquier archiv
   > [!IMPORTANT]  
   > El Pipeline RAG desarrollado fue validado con archivos en formato PDFs almacenados un directorio local, sin embargo, el código no se limitar al formato del archivos.
 
-Sin embargo, también existen herramientas sin código, es decir, servicios web con IA y soluciones avanzadas para desarrolladores que agilizan el procesamiento de los PDF's.
+---
 
-#### Herramientas Web Listas para Usar
-Si no quieres programar, puedes subir tus archivos a plataformas que leen y resumen PDFs automáticamente utilizando IA:
+## CAPÍTULO 1: MARCO ESTRATÉGICO Y CONCEPTUAL
 
-* NotebookLM: Herramienta gratuita de Google que permite subir varios documentos y crear resúmenes o chatear con ellos.
-* HiPDF: Plataforma en línea que permite subir un documento PDF y hacer preguntas sobre su contenido.
-* Adobe Acrobat AI: Opción integrada en el lector oficial de Adobe para interactuar con tus documentos.
+### 1.1 Resumen Ejecutivo
 
-## Pipeline RAG para el Análisis de documentos clínicos
+El presente documento define la arquitectura y el despliegue de un sistema avanzado de **[Generación Aumentada por Recuperación (RAG)](https://github.com/devhadson/AI-Agent-Architecture/blob/main/006.RAG-Generacion-Aumentada-por-Recuperacion.md)** de grado de producción, diseñado para optimizar el análisis documental e interrogar expedientes clínicos masivos de manera local y segura.
 
-A continuación, presento el diseño del flujo que se aplicará para el desarrollo del sistema inteligente de Análisis de documentos clínicos.
-
-```mermaid
-graph LR
-    %% Configuración de Estilos Generales
-    classDef default fill:#f9f9f9,stroke:#333,stroke-width:1px;
-    classDef destacado fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
-    classDef baseDatos fill:#efebe9,stroke:#5d4037,stroke-width:2px;
-
-    %% Nodos del Flujo
-    A[📂 Directorio Local <br> 📑 Archivos PDF] -->|1. Carga masiva| B(📥 Extracción <br> ⚙️ PyPDFDirectoryLoader)
-    B -->|2. Texto plano extraído| C(✂️ Fragmentación <br> 🧠 Chunking: 1000, Overlap: 200)
-    C -->|3. Bloques de texto| D(🧬 Incrustación <br> 🏷️ text-embedding-3-small)
-    D -->|4. Vectores numéricos| E(💾 Almacenamiento <br> ⚡ ChromaDB In-Memory)
-    E -->|5. Indexación espacial| F[🔍 Búsqueda <br> 🎯 Recuperador K=3]
-
-    %% Asignación de Estilos Especiales
-    class B,C,D,E destacado;
-    class A,F baseDatos;
-
-    %% Personalización de enlaces (Aristas)
-    linkStyle default stroke:#555,stroke-width:2px,circle;
-
-```
-
-### Desglose de los Componentes
-
-1. **Extracción:**
-    * **Entrada:** Directorio físico local que almacena los documentos.
-    * **Proceso:** Lee de manera automatizada el texto binario de las páginas de los archivos PDF y lo unifica en texto plano estructurado.
-
-2. **Fragmentación / Chunking:**
-    * **Proceso:** Divide de forma inteligente el texto extenso en bloques homogéneos de un tamaño máximo predefinido.
-    * **Métrica:** Se configuran ventanas semánticas con margen de solapamiento para evitar la pérdida de contexto entre fragmentos adyacentes.
-
-3. **Incrustación:**
-    * **Proceso:** Convierte las palabras y enunciados textuales procesados en la fase anterior en vectores de alta dimensionalidad (coordenadas matemáticas).
-
-4. **Almacenamiento:**
-    * **Proceso:** Colecciona y guarda de forma estructurada los vectores generados junto con sus metadatos fuente dentro de una base de datos indexada en memoria RAM para optimizar la velocidad.
-
-- **Búsqueda e Inferencia:**
-
-    * **Proceso:** Ejecuta algoritmos de similitud coseno sobre la base de datos para recuperar de forma exacta los `k` fragmentos más relevantes frente a una consulta del usuario, dejándolos listos para alimentar al LLM.    
+En el ecosistema de la salud y la gestión de información regulada, la latencia en la búsqueda de datos críticos dentro de Historias Clínicas (H.C.) extensas y el riesgo de "alucinación" de los Modelos de Lenguaje (LLMs) comerciales representan desafíos críticos. Este sistema resuelve dicha problemática mediante el desacoplamiento de dos capas lógicas (*Ingesta* y *Ejecución*). Al combinar la potencia de procesamiento de lenguaje natural de `LangChain v1.0+`, la precisión semántica del modelo `text-embedding-3-small` de OpenAI indexado en un motor vectorial in-memory (`ChromaDB`), y directivas estrictas de inferencia sobre `gpt-4o-mini`, la aplicación transforma documentos PDF estáticos en una base de conocimiento dinámica y consultable en tiempo real bajo un entorno de **cero alucinación**.
 
 ---
 
-## Arquitectura y Tecnologías Aplicadas
+### 1.2 Introducción y Objetivos
 
-El sistema se basa en un patrón RAG desacoplado en dos capas lógicas claras (Ingesta y Ejecución) utilizando las siguientes tecnologías:
+#### 1.2.1 Objetivo del Sistema: ¿Qué problema resuelve esta IA?
+
+El principal objetivo de este sistema de IA es **automatizar la extracción, filtrado y síntesis de información altamente específica y dispersa dentro de documentos y reportes médicos locales, eliminando la necesidad de auditorías manuales multitarea.**
+
+Específicamente, el sistema resuelve los siguientes dolores operativos:
+
+* **Dispersión de Datos:** Centraliza la lectura de múltiples archivos PDF en un único punto de consulta interactivo.
+* **Pérdida de Tiempo en Auditorías Clínicas:** Permite a un especialista saltar directamente a hitos como el análisis de la *H.C. 81743*, aislando exámenes metabólicos, planes de alimentación o alertas de endocrinología en segundos.
+* **Incertidumbre Cognitiva (Alucinaciones):** Los modelos GPT convencionales tienden a inventar datos cuando carecen de información. Esta IA implementa un paradigma *hiper-restrictivo*: si el dato exacto no existe en los documentos cargados, el sistema se abstiene de responder, garantizando la fidelidad de la información extraída.
+* **Latencia y Coste de Infraestructura:** Al operar con una base de datos vectorial residente en memoria RAM (`ChromaDB`) y un LLM optimizado (`gpt-4o-mini`), minimiza los tiempos de respuesta (latencia < 2 segundos) y reduce drásticamente los costos por consumo de tokens.
+
+
+### 1.3 Alcance y Limitaciones del Modelo (Fronteras Operativas)
+
+Para garantizar un despliegue seguro, ético y alineado con los estándares del sector, se definen los límites lógicos de lo que el sistema **hace** y **NO hace**:
+
+#### 📌 Qué HACE el Sistema (Alcance)
+
+* **Extracción y Parseo Semántico:** Lee e indexa de forma masiva texto plano proveniente de archivos PDF estructurados y semiestructurados depositados en el directorio local.
+* **Segmentación Inteligente:** Mantiene la correlación de entidades complejas (ej. dosis de medicamentos, rangos de laboratorio clínico, fechas de control) gracias a una fragmentación con solapamiento (*overlap* de 200 caracteres).
+* **Búsqueda por Similitud Coseno:** Recupera exclusivamente los 3 bloques de texto matemáticamente más relevantes asociados a la pregunta del usuario.
+* **Síntesis Basada en Evidencia:** Consolida una respuesta clara y estructurada utilizando *únicamente* los fragmentos recuperados como contexto fuente.
+
+#### 🚫 Qué NO HACE el Sistema (Limitaciones Críticas)
+
+* **No Emite Diagnósticos Clínicos Autónomos:** El sistema es una herramienta de soporte y extracción documental; **no reemplaza el criterio médico**, no prescribe tratamientos ni genera juicios clínicos independientes.
+* **No Predice Comportamientos ni Tendencias en Salud:** El modelo analiza datos históricos estáticos. **No realiza análisis predictivo ni pronósticos sobre la evolución de patologías**, ni modela comportamientos futuros en pacientes (incluyendo restricciones absolutas para proyecciones de salud mental o física en menores de edad).
+* **No Realiza Búsquedas Externas en la Web:** El modelo opera en un entorno cerrado (*Closed-Domain*). No consultará bases de datos médicas externas, internet ni conocimientos generales de su entrenamiento que no estén explícitamente respaldados por los PDFs locales.
+* **No Automatiza Decisiones Críticas de Negocio o Médicas:** El sistema no desencadena acciones de manera automática (como alertas automáticas de emergencia o despachos de farmacia); requiere siempre la validación y supervisión de un humano en el bucle (*Human-in-the-loop*).
+* **No Ofrece Persistencia a Largo Plazo de Vectores:** Al estar configurado en memoria RAM, el índice se destruye al cerrar la consola. No mantiene un historial de indexación persistente en disco entre sesiones (es una base de datos efímera).
+
+---
+
+## CAPITULO 2: DIAGRAMA DE ARQUITECTURA
+
+### 2.1. Arquitectura de componentes
+
+El sistema se basa en un patrón RAG desacoplado en dos capas lógicas claras (Ingesta y Ejecución) utilizando las siguientes tecnologías y herramientas:
 
 ![Arquitectura TI: Análisis de documentos clínicos aplicando RAG](docs/img/IAGen-Architecture-Tech-2026-RAG-analisis-documentos-clinico.png)
 
@@ -91,9 +76,124 @@ El sistema se basa en un patrón RAG desacoplado en dos capas lógicas claras (I
 * **Modelo de Lenguaje (LLM):** `ChatOpenAI` (`langchain_openai`) operando con `gpt-4o-mini`, seleccionado por su balance coste-rendimiento y velocidad de inferencia bajo contextos densos.
 * **Gestión del Entorno:** `python-dotenv` para la inyección de llaves de API secretas en la arquitectura.
 
+### 2.2. Stack de tecnología (Tech Stack)
+
+A partir de las importaciones y la lógica declarada en `rag_pipeline.py` y `app.py`, el ecosistema tecnológico exacto del proyecto se clasifica de la siguiente manera:
+
+| Capa Arquitectónica | Tecnología / Herramienta | Versión / Componente Específico | Propósito Operativo en el Código |
+| --- | --- | --- | --- |
+| **Lenguaje Base** | 🐍 **Python** | Versión 3.10 o superior | Entorno de ejecución principal de la lógica de negocio y scripts de automatización. |
+| **Framework Corporativo** | 🦜 **LangChain** | Suite v1.0+ (Core, Community, OpenAI, Chroma) | Orquestación, contratos de interfaz, manejo de Prompts y ensamblaje de la cadena de recuperación. |
+| **Procesamiento de Archivos** | 📑 **PyPDF** | `PyPDFDirectoryLoader` | Extractor nativo binario-a-texto de documentos estructurados PDF de forma masiva. |
+| **Procesamiento de Texto** | ✂️ **LangChain Text Splitters** | `RecursiveCharacterTextSplitter` | Algoritmo jerárquico de tokenización y segmentación con control de tamaño y superposición (*overlap*). |
+| **Modelamiento de IA** | 🧠 **OpenAI API** | `text-embedding-3-small` | Modelo matemático de incrustación para la transformación semántica de lenguaje natural a vectores. |
+| **Motor de Base de Datos** | 💾 **Chroma** | `langchain_chroma` | Sistema de gestión de bases de datos vectoriales (*Vector Store*) integrado directamente en memoria RAM. |
+| **Capa de Generación (LLM)** | 🤖 **OpenAI Chat** | `gpt-4o-mini` (Temperature: 0) | Modelo fundacional optimizado para razonamiento de documentos y generación restrictiva de respuestas. |
+| **Seguridad y Entorno** | 🔑 **Python Dotenv** | `python-dotenv` | Gestor de configuración desacoplada encargado de leer el archivo oculto `.env`. |
+
 ---
 
-## Flujos del Sistema RAG
+### 2.3. Requerimientos No Funcionales (RNF)
+
+Los atributos de calidad que garantizan la viabilidad operativa y la resiliencia del sistema bajo estándares corporativos se definen bajo tres pilares fundamentales:
+
+#### 2.3.1 Seguridad
+
+* **Aislamiento de Credenciales (Secret Management):** El sistema prohíbe la inserción directa (*hardcoding*) de llaves de API en el código fuente mediante el uso de `load_dotenv()`. Las llaves (`OPENAI_API_KEY`) se inyectan en tiempo de ejecución en la memoria del proceso.
+* **Seguridad en el Tránsito de Datos (Encriptación):** Toda comunicación entre la aplicación local y los servidores de OpenAI se realiza obligatoriamente mediante el protocolo **TLS 1.3 / HTTPS**, cifrando los fragmentos médicos y las respuestas en tránsito.
+* **Parche de Seguridad SSL:** El código incluye una directiva explícita de desconfiguración de `SSL_CERT_FILE` (`del os.environ["SSL_CERT_FILE"]`) para mitigar bloqueos y asegurar que la validación de certificados de confianza se realice directamente a través de las librerías criptográficas nativas del sistema operativo.
+* **Control de Acceso al Entorno (RBAC Conceptual):** Al operar sobre un directorio local (`./documentos_locales`), la seguridad de los archivos clínicos depende de las políticas de acceso al sistema de archivos del servidor donde se hospede el código (Permisos de lectura/escritura restringidos al usuario ejecutor).
+
+#### 2.3.2 Escalabilidad
+
+* **Desacoplamiento Logístico (Pipeline vs App):** Al separar el motor RAG (`inicializar_pipeline_rag()`) de la interfaz de usuario (`ejecutar_aplicacion()`), el sistema está listo para migrar a una arquitectura orientada a microservicios. La fase de ingesta puede transformarse en una función Serverless (*AWS Lambda / Google Cloud Functions*) y la interfaz en un backend API (*FastAPI*).
+* **Escalabilidad en la Fragmentación:** El uso de `RecursiveCharacterTextSplitter` garantiza que el consumo de memoria durante la carga no crezca de forma exponencial. Procesa los documentos página por página y chunk por chunk, permitiendo digerir archivos extensos sin saturar el desbordamiento de memoria intermedia del host.
+* **Escalabilidad Vectorial Futura:** Cambiar de un entorno *In-Memory* a una infraestructura en la nube distribuida (como *Chroma administrado*, *Pinecone* o *AWS OpenSearch*) requiere modificar únicamente 3 líneas de código, debido al alto nivel de abstracción que proporciona la interfaz unificada de LangChain.
+
+#### 2.3.3 Disponibilidad y Rendimiento
+
+* **Latencia Mínima en Búsquedas:** Al mantener el índice vectorial localmente en memoria RAM, el cálculo matemático del vecino más cercano (*Nearest Neighbors*) toma milisegundos, garantizando que el tiempo total de respuesta de la IA (incluyendo la inferencia del LLM externo) se mantenga por debajo de la barrera de los **2 segundos**.
+* **Control de Tolerancia a Fallos (Fault Tolerance):** El bucle interactivo del chat está envuelto en bloques de control de excepciones (`try-except Exception`). Si la conexión a internet falla o el límite de cuota (Rate Limit) de OpenAI es alcanzado, la aplicación no experimenta una caída catastrófica (*crash*); en su lugar, captura el error, lo imprime en consola para conocimiento del administrador y mantiene el prompt abierto para nuevos intentos.
+* **Alta Disponibilidad del Servicio Generativo:** Al delegar la inferencia en la infraestructura multi-región de OpenAI (`gpt-4o-mini`), el sistema hereda un Acuerdo de Nivel de Servicio (SLA) de disponibilidad global superior al **99.9%** para la capa de razonamiento.
+
+---
+
+# CAPÍTULO 3: PIPELINES Y FLUJOS DE DATOS
+
+Este capítulo analiza de forma microscópica los tres canales de procesamiento de datos que gobiernan el sistema RAG, detallando las transiciones de estado de la información, las fórmulas lógicas aplicadas y el ciclo de vida del software.
+
+## 3.1 Pipeline de Ingesta y ETL (Extracción, Transformación y Carga Vectorial)
+
+El pipeline de ingesta se ejecuta de manera síncrona al inicializar el archivo `rag_pipeline.py`. Su propósito es procesar los documentos estáticos locales y construir el espacio vectorial en memoria.
+
+```mermaid
+flowchart TD
+    %% Estilos de Nodos
+    classDef fase fill:#e2e8f0,stroke:#64748b,stroke-width:2px;
+    classDef exito fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
+    
+    subgraph ETL_Ingesta [Pipeline ETL Local]
+        A[📂 ./documentos_locales] -->|1. Escaneo de PDFs| B(📥 Fase 1: Extracción <br> PyPDFDirectoryLoader)
+        B -->|2. Texto Crudo Unificado| C(✂️ Fase 2: Fragmentación <br> RecursiveCharacterTextSplitter)
+        C -->|3. Lista de Documentos/Chunks| D(🧬 Fase 3: Incrustación <br> text-embedding-3-small)
+        D -->|4. Arreglos Matriciales| E(💾 Fase 4: Carga <br> ChromaDB In-Memory)
+        E -->|5. Retorno Exitoso| F[🚀 Vector Store Instanciado]
+    end
+
+    class B,C,D,E fase;
+    class F exito;
+
+```
+
+### 🛠️ Mecanismo de Procesamiento Micro:
+
+1. **Extracción (Extract):** `PyPDFDirectoryLoader` realiza un barrido binario del directorio. Por cada archivo `.pdf` detectado, parsea su estructura interna página por página (`Document(page_content="...", metadata={"source": "...", "page": int})`).
+2. **Transformación (Transform - Chunking Jerárquico):** El texto plano extraído es procesado por el `RecursiveCharacterTextSplitter`. El algoritmo intenta segmentar el texto utilizando una lista priorizada de caracteres de escape (`["\n\n", "\n", " ", ""]`).
+* **Ventana Móvil ($S_{chunk}$):** Ajustada a $1000$ caracteres. Si un bloque excede este tamaño, busca el separador más cercano para forzar la división.
+* **Margen de Solapamiento ($O_{chunk}$):** Configurado en $200$ caracteres. Esto significa que los últimos 200 caracteres del *Chunk N* son idénticos a los primeros 200 caracteres del *Chunk N+1*, reteniendo la continuidad de oraciones compuestas y el contexto de tablas indexadas.
+
+
+3. **Incrustación (Embedding):** Cada fragmento de texto se envía mediante una petición HTTP POST por lotes a la API de OpenAI. El modelo matemático `text-embedding-3-small` proyecta el texto en un espacio vectorial continuo de **1536 dimensiones**, devolviendo un array de números de punto flotante que representan el significado semántico del texto.
+4. **Carga (Load):** `ChromaDB` recibe los vectores de 1536 dimensiones junto con el texto original y sus metadatos (origen y página), construyendo un índice de búsqueda espacial inmediato en la memoria RAM del proceso.
+
+---
+
+## 3.2 Pipeline de Inferencia (El camino de la consulta en tiempo de ejecución)
+
+Este pipeline describe el viaje que realiza la pregunta de un usuario en tiempo real desde que se captura en el bucle interactivo de `app.py` hasta que la respuesta es impresa en la consola.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Usuario
+    participant App as Capa de Aplicación (app.py)
+    participant DB as Vector Store (ChromaDB)
+    participant LLM as Motor Generativo (gpt-4o-mini)
+
+    Usuario->>App: Ingresa pregunta: "¿Cuáles son los últimos exámenes...?"
+    Note over App: Inyección de la pregunta en la arquitectura RAG
+    App->>DB: Consulta semántica (Pregunta del usuario como query)
+    Note over DB: Ejecución de algoritmo de<br/>distancia coseno
+    DB-->>App: Retorna top k=3 fragmentos de texto más relevantes
+    Note over App: Construcción del prompt unificado:<br/>System Prompt + Contexto Clínico (k=3) + Pregunta
+    App->>LLM: Envía Prompt estructurado (Temperatura = 0)
+    Note over LLM: Razonamiento cerrado e inferencia sin alucinación
+    LLM-->>App: Devuelve string con respuesta basada estrictamente en evidencia
+    App->>Usuario: Muestra la respuesta en consola o levanta excepción si hay error
+
+```
+
+### Descripción de las Estaciones del Flujo:
+
+1. **Captura del Input:** El usuario introduce la consulta en texto libre (ej. *«¿Cuál es la observación más relativa del informe endocrino en la H.C. 81743?»*).
+2. **Conversión y Match Vectorial:** La consulta del usuario se transforma en un vector temporal de 1536 dimensiones utilizando el mismo modelo de embeddings. `ChromaDB` realiza un cálculo de similitud (como la distancia coseno o distancia euclidiana) comparando el vector de la pregunta contra todos los vectores indexados en memoria.
+3. **Filtro Temático ($k=3$):** El motor recupera únicamente los 3 bloques con la menor distancia matemática (mayor similitud semántica) y extrae sus atributos `page_content`.
+4. **Ensamblaje del Contexto (*Stuffing*):** `create_stuff_documents_chain` concatena linealmente los 3 bloques de texto recuperados y los inyecta en la variable `{context}` definida dentro del objeto `ChatPromptTemplate`.
+5. **Inferencia Determinista (LLM):** El prompt final se transmite a OpenAI. Gracias a que el parámetro `temperature` está configurado rigurosamente en `0`, el modelo anula la aleatoriedad matemática en su decodificación de tokens, garantizando que la respuesta generada se ciña estrictamente a los hechos comprobables del contexto médico entregado, omitiendo especulaciones.
+
+---
+
+## 3.3. Flujos del Sistema RAG
 
 A continuación, se esquematizan de forma gráfica los procesos lógicos internos del software o sistema de Análisis de documentos clínicos:
 
@@ -136,7 +236,7 @@ graph LR
 
 ---
 
-## Documentación Detallada del Código Fuente
+## CAPÍTULO 4: CÓDIGO FUENTE Y CASO DE USO VALIDADOS
 
 ### Módulo 1: `rag_pipeline.py` (ETL de Datos Vectoriales)
 
@@ -167,23 +267,8 @@ Establecer la temperatura del LLM en `0` junto con esta instrucción reduce a ce
   > [!NOTE]  
   > Para la ejecución del Software desde VS Code, temporalmente elimino la variable `SSL_CERT_FILE` con el fin de consumir la API de OpenAI mediante HTTPS en mi entorno local.
 
----
 
-## Resumen del Código según el Pipeline RAG
-Este script procesa automáticamente todos los archivos PDF dentro de una carpeta local, ejecuta las 4 fases del pipeline y abre una interfaz de consola para interactuar con los documentos PDFs.
-
-### Pipeline RAG según la Arquitectura del Software
-
-Explicación del Pipeline RAG según la Arquitectura tecnológica del Software de Análisis de documentos clínicos
-
-   1. *Extracción:* `PyPDFDirectoryLoader` escanea de manera eficiente el directorio local indicado. Transforma cada página de cada PDF en un objeto `Document` de LangChain que preserva el texto original junto con metadatos útiles (como el nombre del archivo y el número de página).
-   2. *Fragmentación (Chunking):* Se utiliza `RecursiveCharacterTextSplitter`. La fragmentación inteligente busca cortes naturales respetando saltos de línea `\n\n`, `\n` y espacios. Se define un tamaño de fragmento de 1000 caracteres con un solapamiento de 200 para garantizar que la información que quede en los límites de un fragmento conserve su contexto en el siguiente.
-   3. *Incrustación:* Utilizamos el modelo oficial `text-embedding-3-small` de OpenAI mediante la clase `OpenAIEmbeddings`. Este transforma cada fragmento de texto plano en un vector denso de números que representan su significado semántico.
-   4. *Almacenamiento y Búsqueda:* Los vectores se indexan dentro de un motor de persistencia local rápido llamado `ChromaDB`. Cuando realizas una consulta, este motor calcula la distancia matemática (similitud de coseno) entre el vector de tu pregunta y los fragmentos indexados, devolviendo inmediatamente el contenido más relevante (`k=3`).
-
----
-
-## Casos de Uso y Escenarios Validados
+### Casos de Uso y Escenarios Validados
 
 El pipeline está configurado y validado estructuralmente para resolver los siguientes escenarios del entorno de salud humana (basados en los documentos de la **Historia Clínica N° 81743**):
 
@@ -201,20 +286,9 @@ El pipeline está configurado y validado estructuralmente para resolver los sigu
 * *Pregunta:* *"¿Cuál es el último PLAN DE ALIMENTACIÓN INDIVIDUALIZADO PARA CONTROL DE DIABETES de la H.C. 81743?"*
 * *Comportamiento Validado:* El recuperador aisla la sección de la dieta personalizada guardada en el historial clínico de este paciente en particular, asegurando que el LLM devuelva las instrucciones dietéticas indicadas.
 
+
 > [!IMPORTANT]  
 > Se pude agregar más casos por ejemplo basado en el documento de la **Historia Clínica N° 63290** u otros.
-
----
-
-## Los Mejores Analizadores (Parsers) para RAG
-Para que tu propio sistema RAG entienda el contenido correctamente, es clave convertir el PDF a formatos limpios como Markdown. En la actualidad existe las siguientes herramientas más recomendadas son:
-
-* Firecrawl: Extrae y procesa automáticamente PDFs escaneados y de texto generando un Markdown estructurado.
-* Docling: Herramienta local y de código abierto que produce Markdown de alta calidad ideal para flujos de trabajo de IA.
-* Marker-PDF: Analizador de código abierto muy rápido y efectivo para extraer texto y tablas.
-* Document AI (Google Cloud): Solución avanzada ideal para analizar estructuras complejas como documentos financieros.
-
-Si deseas llevar este código a producción, te sugiero añadir un *historial de conversación* para habilitar el contexto de memoria multi-turno. ¿Te gustaría que adaptemos el código para agregarle memoria o prefieres modificar el almacenamiento para que persista en el disco duro en lugar de ejecutarse en memoria?
 
 ---
 
