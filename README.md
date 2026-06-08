@@ -90,8 +90,8 @@ Los atributos de calidad que garantizan la viabilidad operativa y la resiliencia
 * **Seguridad en el Tránsito de Datos (Encriptación):** Toda comunicación entre la aplicación local y los servidores de OpenAI se realiza obligatoriamente mediante el protocolo **TLS 1.3 / HTTPS**, cifrando los fragmentos médicos y las respuestas en tránsito.
 * **Control de Acceso al Entorno (RBAC Conceptual):** Al operar sobre un directorio local (`./documentos_locales`), la seguridad de los archivos clínicos depende de las políticas de acceso al sistema de archivos del servidor donde se hospede el código (Permisos de lectura/escritura restringidos al usuario ejecutor).
 
-  > [!NOTE]  
-  > Temporalmente en el código se incluye una directiva explícita de desconfiguración de `SSL_CERT_FILE` (`del os.environ["SSL_CERT_FILE"]`) para mitigar bloqueos y asegurar que la validación de certificados de confianza se realice directamente a través de las librerías criptográficas nativas del sistema operativo.
+> [!NOTE]  
+> Temporalmente en el código se incluye una directiva explícita de desconfiguración de `SSL_CERT_FILE` (`del os.environ["SSL_CERT_FILE"]`) para mitigar bloqueos y asegurar que la validación de certificados de confianza se realice directamente a través de las librerías criptográficas nativas del sistema operativo.
 
 #### 2.3.2 Escalabilidad
 
