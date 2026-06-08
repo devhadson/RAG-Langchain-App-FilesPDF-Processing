@@ -1,34 +1,32 @@
 # ANÁLISIS DE DOCUMENTOS CLÍNICOS APLICANDO RAG
 
-Esta solución de inteligencia artificial implementa un sistema de Generación Aumentada por Recuperación (RAG) diseñado para transformar expedientes médicos y reportes clínicos estáticos en una base de conocimientos interactiva. Al integrar herramientas avanzadas de procesamiento de lenguaje natural, el software extrae y fragmenta automáticamente el contenido de documentos PDF locales para indexarlos en una base de datos vectorial de alta velocidad. El sistema permite realizar consultas directas sobre historias clínicas complejas, automatizando la búsqueda de datos críticos y garantizando respuestas precisas y basadas estrictamente en la evidencia documental, optimizando el tiempo de auditoría de los especialistas médicos.
+Esta solución de inteligencia artificial implementa un sistema de **[Generación Aumentada por Recuperación (RAG)](https://github.com/devhadson/AI-Agent-Architecture/blob/main/006.RAG-Generacion-Aumentada-por-Recuperacion.md)** diseñado para transformar expedientes médicos y reportes clínicos estáticos en una base de conocimientos interactiva. Al integrar herramientas avanzadas de procesamiento de lenguaje natural, el software extrae y fragmenta automáticamente el contenido de documentos PDF locales para indexarlos en una base de datos vectorial de alta velocidad. 
 
 ---
 
 ## CAPÍTULO 1: MARCO ESTRATÉGICO Y CONCEPTUAL
 
-### 1.1 Resumen Ejecutivo
+### 1.1 Resumen
 
-El presente documento define la arquitectura y el despliegue de un sistema avanzado de **[Generación Aumentada por Recuperación (RAG)](https://github.com/devhadson/AI-Agent-Architecture/blob/main/006.RAG-Generacion-Aumentada-por-Recuperacion.md)** de grado de producción, diseñado para optimizar el análisis documental e interrogar expedientes clínicos masivos de manera local y segura.
-
-En el ecosistema de la salud y la gestión de información regulada, la latencia en la búsqueda de datos críticos dentro de Historias Clínicas (H.C.) extensas y el riesgo de "alucinación" de los Modelos de Lenguaje (LLMs) comerciales representan desafíos críticos. Este sistema resuelve dicha problemática mediante el desacoplamiento de dos capas lógicas (*Ingesta* y *Ejecución*). Al combinar la potencia de procesamiento de lenguaje natural de `LangChain v1.0+`, la precisión semántica del modelo `text-embedding-3-small` de OpenAI indexado en un motor vectorial in-memory (`ChromaDB`), y directivas estrictas de inferencia sobre `gpt-4o-mini`, la aplicación transforma documentos PDF estáticos en una base de conocimiento dinámica y consultable en tiempo real bajo un entorno de **cero alucinación**.
+En el ecosistema de la salud y la gestión de información regulada, la latencia en la búsqueda de datos críticos dentro de Historias Clínicas (H.C.) extensas y el riesgo de "alucinación" de los Modelos de Lenguaje (LLMs) comerciales representan desafíos críticos. Este sistema resuelve dicha problemática mediante el desacoplamiento de dos capas lógicas (*Ingesta* y *Ejecución*). Al combinar el procesamiento de lenguaje natural de `LangChain v1.0+`, la precisión semántica del modelo `text-embedding-3-small` de OpenAI indexado en un motor vectorial in-memory (`ChromaDB`), y directivas estrictas de inferencia sobre `gpt-4o-mini`, la aplicación transforma documentos PDF estáticos en una base de conocimiento dinámica y consultable en tiempo real bajo un entorno de **cero alucinación**.
 
 ---
 
 ### 1.2 Introducción y Objetivos
 
-#### 1.2.1 Objetivo del Sistema: ¿Qué problema resuelve esta IA?
+#### 1.2.1 Objetivo del Sistema:
 
 El principal objetivo de este sistema de IA es **automatizar la extracción, filtrado y síntesis de información altamente específica y dispersa dentro de documentos y reportes médicos locales, eliminando la necesidad de auditorías manuales multitarea.**
 
 Específicamente, el sistema resuelve los siguientes dolores operativos:
 
 * **Dispersión de Datos:** Centraliza la lectura de múltiples archivos PDF en un único punto de consulta interactivo.
-* **Pérdida de Tiempo en Auditorías Clínicas:** Permite a un especialista saltar directamente a hitos como el análisis de la *H.C. 81743*, aislando exámenes metabólicos, planes de alimentación o alertas de endocrinología en segundos.
+* **Pérdida de Tiempo en Auditorías Clínicas:** Permite a un especialista consultar directamente a hitos como el análisis de la *H.C. 81743*, aislando exámenes metabólicos, planes de alimentación o alertas de endocrinología en segundos.
 * **Incertidumbre Cognitiva (Alucinaciones):** Los modelos GPT convencionales tienden a inventar datos cuando carecen de información. Esta IA implementa un paradigma *hiper-restrictivo*: si el dato exacto no existe en los documentos cargados, el sistema se abstiene de responder, garantizando la fidelidad de la información extraída.
 * **Latencia y Coste de Infraestructura:** Al operar con una base de datos vectorial residente en memoria RAM (`ChromaDB`) y un LLM optimizado (`gpt-4o-mini`), minimiza los tiempos de respuesta (latencia < 2 segundos) y reduce drásticamente los costos por consumo de tokens.
 
 
-### 1.3 Alcance y Limitaciones del Modelo (Fronteras Operativas)
+### 1.3 Alcance y Limitaciones del Modelo
 
 Para garantizar un despliegue seguro, ético y alineado con los estándares del sector, se definen los límites lógicos de lo que el sistema **hace** y **NO hace**:
 
@@ -45,7 +43,7 @@ Para garantizar un despliegue seguro, ético y alineado con los estándares del 
 * **No Predice Comportamientos ni Tendencias en Salud:** El modelo analiza datos históricos estáticos. **No realiza análisis predictivo ni pronósticos sobre la evolución de patologías**, ni modela comportamientos futuros en pacientes (incluyendo restricciones absolutas para proyecciones de salud mental o física en menores de edad).
 * **No Realiza Búsquedas Externas en la Web:** El modelo opera en un entorno cerrado (*Closed-Domain*). No consultará bases de datos médicas externas, internet ni conocimientos generales de su entrenamiento que no estén explícitamente respaldados por los PDFs locales.
 * **No Automatiza Decisiones Críticas de Negocio o Médicas:** El sistema no desencadena acciones de manera automática (como alertas automáticas de emergencia o despachos de farmacia); requiere siempre la validación y supervisión de un humano en el bucle (*Human-in-the-loop*).
-* **No Ofrece Persistencia a Largo Plazo de Vectores:** Al estar configurado en memoria RAM, el índice se destruye al cerrar la consola. No mantiene un historial de indexación persistente en disco entre sesiones (es una base de datos efímera).
+* **No Ofrece Persistencia a Largo Plazo de Vectores:** Al estar configurado en memoria RAM, el índice se destruye al cerrar la consola. No mantiene un historial de indexación persistente en disco entre sesiones (es una base de datos efímera o temporal).
 
 ---
 
@@ -65,7 +63,7 @@ El sistema se basa en un patrón RAG desacoplado en dos capas lógicas claras (I
 * **Modelo de Lenguaje (LLM):** `ChatOpenAI` (`langchain_openai`) operando con `gpt-4o-mini`, seleccionado por su balance coste-rendimiento y velocidad de inferencia bajo contextos densos.
 * **Gestión del Entorno:** `python-dotenv` para la inyección de llaves de API secretas en la arquitectura.
 
-### 2.2. Stack de tecnología (Tech Stack)
+### 2.2. Stack Tecnológico (Tech Stack)
 
 A partir de las importaciones y la lógica declarada en `rag_pipeline.py` y `app.py`, el ecosistema tecnológico exacto del proyecto se clasifica de la siguiente manera:
 
@@ -90,20 +88,28 @@ Los atributos de calidad que garantizan la viabilidad operativa y la resiliencia
 
 * **Aislamiento de Credenciales (Secret Management):** El sistema prohíbe la inserción directa (*hardcoding*) de llaves de API en el código fuente mediante el uso de `load_dotenv()`. Las llaves (`OPENAI_API_KEY`) se inyectan en tiempo de ejecución en la memoria del proceso.
 * **Seguridad en el Tránsito de Datos (Encriptación):** Toda comunicación entre la aplicación local y los servidores de OpenAI se realiza obligatoriamente mediante el protocolo **TLS 1.3 / HTTPS**, cifrando los fragmentos médicos y las respuestas en tránsito.
-* **Parche de Seguridad SSL:** El código incluye una directiva explícita de desconfiguración de `SSL_CERT_FILE` (`del os.environ["SSL_CERT_FILE"]`) para mitigar bloqueos y asegurar que la validación de certificados de confianza se realice directamente a través de las librerías criptográficas nativas del sistema operativo.
 * **Control de Acceso al Entorno (RBAC Conceptual):** Al operar sobre un directorio local (`./documentos_locales`), la seguridad de los archivos clínicos depende de las políticas de acceso al sistema de archivos del servidor donde se hospede el código (Permisos de lectura/escritura restringidos al usuario ejecutor).
+
+  > [!NOTE]  
+  > Temporalmente en el código se incluye una directiva explícita de desconfiguración de `SSL_CERT_FILE` (`del os.environ["SSL_CERT_FILE"]`) para mitigar bloqueos y asegurar que la validación de certificados de confianza se realice directamente a través de las librerías criptográficas nativas del sistema operativo.
 
 #### 2.3.2 Escalabilidad
 
-* **Desacoplamiento Logístico (Pipeline vs App):** Al separar el motor RAG (`inicializar_pipeline_rag()`) de la interfaz de usuario (`ejecutar_aplicacion()`), el sistema está listo para migrar a una arquitectura orientada a microservicios. La fase de ingesta puede transformarse en una función Serverless (*AWS Lambda / Google Cloud Functions*) y la interfaz en un backend API (*FastAPI*).
 * **Escalabilidad en la Fragmentación:** El uso de `RecursiveCharacterTextSplitter` garantiza que el consumo de memoria durante la carga no crezca de forma exponencial. Procesa los documentos página por página y chunk por chunk, permitiendo digerir archivos extensos sin saturar el desbordamiento de memoria intermedia del host.
+
+**Próximo Pasos:**
+
+* **Desacoplamiento Logístico (Pipeline vs App):** Al separar el motor RAG (`inicializar_pipeline_rag()`) de la interfaz de usuario (`ejecutar_aplicacion()`), el sistema está listo para migrar a una arquitectura orientada a microservicios. La fase de ingesta puede transformarse en una función Serverless (*AWS Lambda / Google Cloud Functions*) y la interfaz en un backend API (*FastAPI*).
 * **Escalabilidad Vectorial Futura:** Cambiar de un entorno *In-Memory* a una infraestructura en la nube distribuida (como *Chroma administrado*, *Pinecone* o *AWS OpenSearch*) requiere modificar únicamente 3 líneas de código, debido al alto nivel de abstracción que proporciona la interfaz unificada de LangChain.
 
 #### 2.3.3 Disponibilidad y Rendimiento
 
 * **Latencia Mínima en Búsquedas:** Al mantener el índice vectorial localmente en memoria RAM, el cálculo matemático del vecino más cercano (*Nearest Neighbors*) toma milisegundos, garantizando que el tiempo total de respuesta de la IA (incluyendo la inferencia del LLM externo) se mantenga por debajo de la barrera de los **2 segundos**.
-* **Control de Tolerancia a Fallos (Fault Tolerance):** El bucle interactivo del chat está envuelto en bloques de control de excepciones (`try-except Exception`). Si la conexión a internet falla o el límite de cuota (Rate Limit) de OpenAI es alcanzado, la aplicación no experimenta una caída catastrófica (*crash*); en su lugar, captura el error, lo imprime en consola para conocimiento del administrador y mantiene el prompt abierto para nuevos intentos.
 * **Alta Disponibilidad del Servicio Generativo:** Al delegar la inferencia en la infraestructura multi-región de OpenAI (`gpt-4o-mini`), el sistema hereda un Acuerdo de Nivel de Servicio (SLA) de disponibilidad global superior al **99.9%** para la capa de razonamiento.
+
+**Próximos Pasos:**
+
+* **Control de Tolerancia a Fallos (Fault Tolerance):** El bucle interactivo del chat está envuelto en bloques de control de excepciones (`try-except Exception`). Si la conexión a internet falla o el límite de cuota (Rate Limit) de OpenAI es alcanzado, la aplicación no experimenta una caída catastrófica (*crash*); en su lugar, captura el error, lo imprime en consola para conocimiento del administrador y mantiene el prompt abierto para nuevos intentos.
 
 ---
 
@@ -234,8 +240,6 @@ Este script actúa como el motor de carga del sistema. Sus puntos clave son:
 1. **Validación y Resiliencia:** Utiliza la librería nativa `pathlib` para verificar si la carpeta `./documentos_locales` existe y si contiene archivos `.pdf`. Si está vacía, interrumpe la ejecución de forma segura retornando `None`, evitando errores de ejecución en el LLM.
 2. **Mecanismo de Fragmentación:** * `chunk_size=1000`: Cada fragmento de texto tendrá un límite aproximado de 1000 caracteres.
 * `chunk_overlap=200`: Permite que el final de un bloque comparta 200 caracteres con el inicio del siguiente bloque, lo que preserva la continuidad del significado en oraciones compuestas.
-
-
 3. **Indexación:** `Chroma.from_documents` realiza la llamada paralela hacia la API de OpenAI para transformar los bloques en vectores numéricos de características e inicializa la base de datos local en memoria RAM.
 
 ### Módulo 2: `app.py` (Capa de Aplicación y Prompt Engineering)
@@ -247,14 +251,11 @@ Este componente maneja la interacción con el usuario y aplica directivas estric
 
 ```text
 "Eres un asistente virtual experto encargado de responder preguntas basándote únicamente en el contexto proporcionado. Si no sabes la respuesta o no está en los documentos, di explícitamente que no posees esa información."
-
 ```
+
 Establecer la temperatura del LLM en `0` junto con esta instrucción reduce a cero la creatividad del modelo, forzándolo a actuar como un extractor de datos exacto.
 
 3. **Uso de Cadenas Clásicas Actualizadas:** Adopta `create_stuff_documents_chain` y `create_retrieval_chain` para gestionar de extremo a extremo la inyección del contexto y la entrega de la llave `"respuesta"` en el diccionario de salida.
-
-  > [!NOTE]  
-  > Para la ejecución del Software desde VS Code, temporalmente elimino la variable `SSL_CERT_FILE` con el fin de consumir la API de OpenAI mediante HTTPS en mi entorno local.
 
 
 ### Casos de Uso y Escenarios Validados
@@ -280,7 +281,7 @@ El pipeline está configurado y validado estructuralmente para resolver los sigu
 
 # RESUMEN
 
-El programa automatiza de forma segura la lectura de documentos clínicos mediante un pipeline estructurado en dos capas: ingesta y ejecución. Primero, extrae el texto de archivos PDF locales, lo divide en fragmentos semánticos y lo convierte en vectores matemáticos almacenados en memoria RAM mediante ChromaDB. Luego, cuando el usuario realiza una pregunta, el motor recupera los tres fragmentos más relevantes y alimenta al modelo GPT-4o-mini de OpenAI. Al configurarse con temperatura cero y reglas restrictivas, la IA no inventa información; si el dato no existe, se abstiene de responder, eliminando el riesgo de alucinaciones en salud.
+El programa automatiza de forma segura la lectura de documentos clínicos mediante un pipeline estructurado en dos capas: *ingesta* y *ejecución*. Primero, **extrae el texto de archivos PDF locales, lo divide en fragmentos semánticos y lo convierte en vectores matemáticos almacenados en memoria RAM mediante** `ChromaDB`. Luego, cuando el usuario realiza una pregunta, el motor recupera los tres fragmentos más relevantes y alimenta al modelo GPT-4o-mini de OpenAI. Al configurarse con temperatura cero y reglas restrictivas, la IA no inventa información; si el dato no existe, se abstiene de responder, eliminando el riesgo de alucinaciones en salud.
 
 ---
 
